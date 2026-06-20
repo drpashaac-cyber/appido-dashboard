@@ -36,7 +36,6 @@ export function ChannelWizard({ t, onConnect, onClose, email }: any) {
   const mem = [4200, 9100, 6700];
   const PLANS = [{ name: PLAN_NAMES[0], price: PLAN_PRICES[0], sub: c.perMonth + " · " + t.bill.perCh }, { name: PLAN_NAMES[1], price: PLAN_PRICES[1], sub: c.perMonth + " · " + t.bill.perCh }, { name: c.freeTrial, price: c.free, sub: c.noCard, free: true }];
   const next = () => setStep((s) => Math.min(TOTAL, s + 1));
-  const verify5 = () => { setV5("checking"); setTimeout(() => setV5("ok"), 900); };
   const POOL = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
   const rnd = (n: number) => Array.from({ length: n }, () => POOL[Math.floor(Math.random() * POOL.length)]).join("");
   const gen = () => "APD-" + rnd(4) + "-" + rnd(4);
