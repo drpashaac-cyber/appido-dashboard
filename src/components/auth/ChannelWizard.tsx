@@ -169,5 +169,8 @@ export function ChannelWizard({ t, onConnect, onClose, email }: any) {
         </div>
       </div>
     </div>
-  );
+    );
 }
+  
+ 
+ 
