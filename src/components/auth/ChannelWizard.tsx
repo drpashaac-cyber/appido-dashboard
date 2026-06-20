@@ -170,4 +170,5 @@ export function ChannelWizard({ t, onConnect, onClose, email }: any) {
       </div>
     </div>
   );
-}
+}/ /   f i x :   r e m o v e d   d u p l i c a t e   v e r i f y 5  
+ 
