@@ -22,6 +22,10 @@ export function InboxView({ t, target, autopilot }: any) {
   const [recording, setRecording] = useState(false);
   const [recSecs, setRecSecs] = useState(0);
   useEffect(() => { if (!recording) { setRecSecs(0); return; } const id = setInterval(() => setRecSecs((s) => s + 1), 1000); return () => clearInterval(id); }, [recording]);
+
+  const list = CONVOS.filter((c: any) => seg === "all" || c.seg === seg);
+  const c = list[active] || CONVOS[0];
+
   // Live: load + toggle this customer's marketing consent (drives the campaign opt-in gate).
   useEffect(() => {
     if (!live || !c?.id) { setMktConsent(null); return; }
@@ -42,8 +46,6 @@ export function InboxView({ t, target, autopilot }: any) {
     const idx = CONVOS.findIndex((c) => c.id === target);
     if (idx >= 0) { setSeg("all"); setActive(idx); setOpenChat(true); }
   }, [target]);
-  const list = CONVOS.filter((c: any) => seg === "all" || c.seg === seg);
-  const c = list[active] || CONVOS[0];
   // Live mode: load this customer's real chat thread; reset reply target on conversation switch.
   useEffect(() => {
     setReplyTo(null);
