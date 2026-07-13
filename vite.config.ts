@@ -4,6 +4,7 @@ import path from "node:path";
 
 // APPIDO dashboard — modular SPA build.
 export default defineConfig({
+  base: "/os",
   plugins: [react()],
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
