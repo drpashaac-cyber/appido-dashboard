@@ -9,7 +9,15 @@ export function SalesAdvisor({ t, lang, account, open, onClose, onUpgrade, onCap
   const LANGNAME: Record<string, string> = { en: "English", fa: "Persian (Farsi)", ar: "Arabic", tr: "Turkish", ru: "Russian" };
   const PRICE_REPS = [20, 65, 250, 800];
   const SALES_REPS = [12, 50, 250, 900];
-  const [messages, setMessages] = useState<any[]>(() => [{ role: "ai", text: a.greetName }]);
+  const LANGS = [
+    { id: "en", label: "English" },
+    { id: "fa", label: "?????" },
+    { id: "ar", label: "???????" },
+    { id: "tr", label: "Türkçe" },
+    { id: "ru", label: "???????" },
+  ];
+  const [selectedLang, setSelectedLang] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>(() => [{ role: "ai", text: "Choose your language · ???? · ????? · Dil · ????", chips: true, langPicker: true }]);
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<"q" | "done">("q");
   const [profile, setProfile] = useState<any>({});
