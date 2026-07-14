@@ -17,7 +17,7 @@ export function SalesAdvisor({ t, lang, account, open, onClose, onUpgrade, onCap
     { id: "ru", label: "???????" },
   ];
   const [selectedLang, setSelectedLang] = useState<string | null>(null);
-  const [messages, setMessages] = useState<any[]>(() => [{ role: "ai", text: "Choose your language · ???? · ????? · Dil · ????", chips: true, langPicker: true }]);
+  const [messages, setMessages] = useState<any[]>(() => [{ role: "ai", text: "Choose your language · ???? · ????? · Dil · ????", langPicker: true }]);
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<"q" | "done">("q");
   const [profile, setProfile] = useState<any>({});
