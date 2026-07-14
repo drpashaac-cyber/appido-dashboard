@@ -27,7 +27,7 @@ export function ChannelWizard({ t, onConnect, onClose, email }: any) {
   const [trialDays, setTrialDays] = useState(14);
   useEffect(() => { if (live) api.settings().then((s: any) => setTrialDays(s.trialDays || 14)).catch(() => {}); }, [live]);
   const TOTAL = 7;
-  const tokenOk = /^\d{6,12}:[A-Za-z0-9_-]{30,}$/.test(token.trim());
+  const tokenOk = /^\d{5,15}:[A-Za-z0-9_-]{25,}$/.test(token.trim());
   const tokenErr = token.trim().length > 0 && !tokenOk;
   const codeOk = /^APD-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$/i.test(code.trim());
   const codeErr = code.trim().length > 0 && !codeOk;
