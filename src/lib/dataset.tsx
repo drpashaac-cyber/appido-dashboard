@@ -71,7 +71,7 @@ function periodOf(days: number | null): string {
 // last message, time, who's handling it and a waiting flag are all real (unread = customer's last
 // message is unanswered; there's no read model yet).
 function convoFromInbox(r: InboxConvo) {
-  return { id: r.customerId, name: r.name, handle: r.handle || "", tag: cap(r.tag || ""),, seg: r.segment || (r.aiManaged ? "ai" : "needs"), last: r.last || "", time: r.at ? relTime(r.at) : "", unread: r.unread || 0, ai: r.aiManaged, who: r.segment || "", intent: r.intent };
+  return { id: r.customerId, name: r.name, handle: r.handle || "", tag: cap(r.tag || ""), seg: r.segment || (r.aiManaged ? "ai" : "needs"), last: r.last || "", time: r.at ? relTime(r.at) : "", unread: r.unread || 0, ai: r.aiManaged, who: r.segment || "", intent: r.intent };
 }
 function txnFromApi(t: ApiTransaction) {
   return { name: t.customerName || "—", amount: fmtUsd(t.amountCents / 100), gw: t.gateway, status: t.status, time: relTime(t.at), plan: 0 };
@@ -181,3 +181,4 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return <Ctx.Provider value={state}>{children}</Ctx.Provider>;
 }
+
