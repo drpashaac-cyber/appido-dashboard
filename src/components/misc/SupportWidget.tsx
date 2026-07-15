@@ -1,5 +1,3 @@
-
-
 import { useEffect, useRef, useState } from "react";
 
 // Mirrors the dashboard's AI support advisor, for the public site: auto-opens after 10s and the
@@ -16,15 +14,26 @@ const LANGS: { id: string; label: string }[] = [
   { id: "ru", label: "Русский" },
 ];
 
-const UI: Record<string, { title: string; sub: string; ph: string; greet: string }> = {
-  en: { title: "Appido Assistant", sub: "AI · replies in seconds", ph: "Ask anything…", greet: "Hi! I'm Appido's assistant. Ask me anything about turning your Telegram into a 24/7 sales machine." },
-  fa: { title: "دستیارِ اپیدو", sub: "هوشِ مصنوعی · پاسخ در چند ثانیه", ph: "هر سوالی داری بپرس…", greet: "سلام! من دستیارِ اپیدو هستم. هر سوالی دربارهٔ تبدیلِ تلگرامت به یک ماشینِ فروشِ 24ساعته داری، بپرس." },
-  ar: { title: "مساعد أبيدو", sub: "ذكاء اصطناعي · رد خلال ثوانٍ", ph: "اسأل أي شيء…", greet: "مرحبًا! أنا مساعد أبيدو. اسألني أي شيء عن تحويل تيليجرام إلى آلة مبيعات تعمل 24/7." },
-  tr: { title: "Appido Asistanı", sub: "Yapay zeka · saniyeler içinde yanıt", ph: "Bir şey sorun…", greet: "Merhaba! Ben Appido asistanıyım. Telegram'ınızı 7/24 satış makinesine dönüştürmeyle ilgili her şeyi sorabilirsiniz." },
-  ru: { title: "Ассистент Appido", sub: "ИИ · ответ за секунды", ph: "Спросите что угодно…", greet: "Привет! Я ассистент Appido. Спросите что угодно о превращении Telegram в машину продаж 24/7." },
+const UI: Record<string, { title: string; sub: string; ph: string; greet: string; langChanged: string }> = {
+  en: { title: "Appido Assistant", sub: "AI · replies in seconds", ph: "Ask anything…", greet: "Hi! I'm Appido's assistant. Ask me anything about turning your Telegram into a 24/7 sales machine.", langChanged: "Switched to English." },
+  fa: { title: "دستیارِ اپیدو", sub: "هوشِ مصنوعی · پاسخ در چند ثانیه", ph: "هر سوالی داری بپرس…", greet: "سلام! من دستیارِ اپیدو هستم. هر سوالی دربارهٔ تبدیلِ تلگرامت به یک ماشینِ فروشِ 24ساعته داری، بپرس.", langChanged: "زبان به فارسی تغییر کرد." },
+  ar: { title: "مساعد أبيدو", sub: "ذكاء اصطناعي · رد خلال ثوانٍ", ph: "اسأل أي شيء…", greet: "مرحبًا! أنا مساعد أبيدو. اسألني أي شيء عن تحويل تيليجرام إلى آلة مبيعات تعمل 24/7.", langChanged: "تم التبديل إلى العربية." },
+  tr: { title: "Appido Asistanı", sub: "Yapay zeka · saniyeler içinde yanıt", ph: "Bir şey sorun…", greet: "Merhaba! Ben Appido asistanıyım. Telegram'ınızı 7/24 satış makinesine dönüştürmeyle ilgili her şeyi sorabilirsiniz.", langChanged: "Türkçeye geçildi." },
+  ru: { title: "Ассистент Appido", sub: "ИИ · ответ за секунды", ph: "Спросите что угодно…", greet: "Привет! Я ассистент Appido. Спросите что угодно о превращении Telegram в машину продаж 24/7.", langChanged: "Переключено на русский." },
 };
 
 type Msg = { role: "ai" | "me"; text: string; chips?: boolean };
+
+// Detect language from user input text
+function detectLang(text: string): string {
+  if (/[\u0600-\u06FF]/.test(text)) {
+    // Persian vs Arabic: Persian has unique chars like پ، چ، ژ، گ
+    return /[\u067E\u0686\u0698\u06AF\u06A9\u06CC]/.test(text) ? "fa" : "ar";
+  }
+  if (/[\u0400-\u04FF]/.test(text)) return "ru";
+  if (/[çğışöüÇĞİŞÖÜ]/.test(text)) return "tr";
+  return "en";
+}
 
 export function SupportWidget() {
   const [open, setOpen] = useState(false);
@@ -54,16 +63,37 @@ export function SupportWidget() {
 
   const send = async () => {
     const v = input.trim();
-    if (!v || busy || !lang) return;
+    if (!v || busy) return;
+
+    // Auto-detect language from user input
+    const detected = detectLang(v);
+    let activeLang = lang;
+
+    if (!activeLang) {
+      // No language selected yet — auto-detect and set
+      activeLang = detected;
+      setLang(detected);
+      setMessages((m) => m.map((x) => (x.chips ? { ...x, chips: false } : x)));
+    } else if (detected !== "en" && detected !== activeLang) {
+      // User switched language mid-conversation
+      activeLang = detected;
+      setLang(detected);
+      setMessages((m) => [...m, { role: "ai", text: UI[detected].langChanged }]);
+    }
+
     setInput("");
     setMessages((m) => [...m, { role: "me", text: v }]);
     setBusy(true);
     try {
-      const res = await fetch("https://api.appido.io/v1/ai/advisor-public", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: v, lang }) });
+      const res = await fetch("https://api.appido.io/v1/ai/advisor-public", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: v, lang: activeLang }),
+      });
       const data = (await res.json()) as { answer?: string };
-      setMessages((m) => [...m, { role: "ai", text: data.answer && data.answer.trim() ? data.answer : ui.greet }]);
+      setMessages((m) => [...m, { role: "ai", text: data.answer?.trim() || UI[activeLang!].greet }]);
     } catch {
-      setMessages((m) => [...m, { role: "ai", text: ui.greet }]);
+      setMessages((m) => [...m, { role: "ai", text: UI[activeLang!].greet }]);
     } finally {
       setBusy(false);
     }
@@ -125,10 +155,10 @@ export function SupportWidget() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") send(); }}
           placeholder={ui.ph}
-          disabled={!lang || busy}
+          disabled={busy}
           style={{ flex: 1, minWidth: 0, padding: "10px 12px", borderRadius: 12, border: `1px solid ${COL.sand}`, background: COL.cream, color: COL.forest, fontSize: 13.5, outline: "none" }}
         />
-        <button aria-label="Send" onClick={send} disabled={!lang || busy || !input.trim()} style={{ flex: "0 0 auto", width: 42, borderRadius: 12, border: "none", background: COL.phosphor, color: COL.forest, cursor: !lang || busy || !input.trim() ? "default" : "pointer", opacity: !lang || busy || !input.trim() ? 0.55 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <button aria-label="Send" onClick={send} disabled={busy || !input.trim()} style={{ flex: "0 0 auto", width: 42, borderRadius: 12, border: "none", background: COL.phosphor, color: COL.forest, cursor: busy || !input.trim() ? "default" : "pointer", opacity: busy || !input.trim() ? 0.55 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
         </button>
       </div>
