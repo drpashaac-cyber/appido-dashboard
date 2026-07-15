@@ -167,7 +167,7 @@ export function SupportWidget() {
         }}
         style={{
           position: "fixed",
-          insetInlineEnd: 20,
+          right: 20,
           bottom: 20,
           zIndex: 60,
           width: 56,
@@ -188,7 +188,7 @@ export function SupportWidget() {
           <circle cx="9" cy="12" r="1" fill="currentColor" />
           <circle cx="15" cy="12" r="1" fill="currentColor" />
         </svg>
-        <span style={{ position: "absolute", top: 12, insetInlineEnd: 12, width: 9, height: 9, borderRadius: 999, background: COL.phosphor, boxShadow: "0 0 0 2px " + COL.forest }} />
+        <span style={{ position: "absolute", top: 12, right: 12, width: 9, height: 9, borderRadius: 999, background: COL.phosphor, boxShadow: "0 0 0 2px " + COL.forest }} />
       </button>
     );
   }
@@ -198,7 +198,7 @@ export function SupportWidget() {
       dir={rtl ? "rtl" : "ltr"}
       style={{
         position: "fixed",
-        insetInlineEnd: 20,
+        right: 20,
         bottom: 20,
         zIndex: 60,
         width: "min(360px, calc(100vw - 32px))",
