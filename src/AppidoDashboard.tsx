@@ -274,8 +274,8 @@ export default function AppidoDashboard() {
       {authed && firstWin && <FirstWinModal t={t} leads={firstWin.leads} onActivate={() => { setFirstWin(null); toast(t.toast.created); }} onClose={() => setFirstWin(null)} />}
       {authed && briefOpen && <DailyBrief t={t} decisions={ACTION_META.length} onClose={() => { setBriefOpen(false); store.set("briefSeen", todayKey()); }} onGoTasks={() => { setBriefOpen(false); store.set("briefSeen", todayKey()); setView("actions"); }} />}
       {authed && xaiOpen && <AIExplainModal t={t} onClose={() => setXaiOpen(false)} onAdjust={() => setXaiOpen(false)} />}
-      {authed && <SalesAdvisor t={t} lang={lang} account={account} open={advisorOpen} onClose={() => setAdvisorOpen(false)} onUpgrade={() => { setAdvisorOpen(false); setWizard(true); track("advisor_cta"); }} onCapture={(p: any) => setAdvisorProfile(p)} />}
-      {authed && !advisorOpen && <AdvisorFab label={t.adv.title} onOpen={() => setAdvisorOpen(true)} />}
+      {false && <SalesAdvisor t={t} lang={lang} account={account} open={advisorOpen} onClose={() => setAdvisorOpen(false)} onUpgrade={() => { setAdvisorOpen(false); setWizard(true); track("advisor_cta"); }} onCapture={(p: any) => setAdvisorProfile(p)} />}
+      {false && !advisorOpen && <AdvisorFab label={t.adv.title} onOpen={() => setAdvisorOpen(true)} />}
       <SupportWidget />
       {toastMsg && <div className="db-toast" role="status">{toastMsg}</div>}
     </div>
