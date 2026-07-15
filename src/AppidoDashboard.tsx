@@ -20,6 +20,7 @@ import { ShareCard, WallOfWins, ReferralModal, FauxQR } from "./components/share
 import { JourneysView, PlaybookGallery } from "./components/journeys";
 import { CrmView } from "./components/crm";
 import { AgentView, AIExplainModal, SalesAdvisor } from "./components/agent";
+import { SupportWidget } from "./components/misc/SupportWidget";
 import { ChannelBilling, OfferSendModal } from "./components/billing";
 import { InboxView, ActionInboxView } from "./components/inbox";
 import { ProductsView } from "./components/products";
