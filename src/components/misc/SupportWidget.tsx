@@ -148,16 +148,204 @@ const ADV: Record<LangId, any> = {
 const PRICE_REPS = [20, 65, 250, 800];
 const SALES_REPS = [12, 50, 250, 900];
 
-function detectMessageLang(text: string): LangId | null {
-  const v = text.trim();
-  if (!v) return null;
-  if (/[\u0600-\u06FF]/.test(v)) {
-    if (/[\u067E\u0686\u0698\u06AF\u06A9\u06CC\u06F0-\u06F9]/.test(v)) return "fa";
-    return "ar";
+function detectMessageLang(
+  text: string,
+  currentLang?: LangId | null,
+): LangId | null {
+  const value = text.trim();
+
+  if (!value) return null;
+
+  // Russian has a distinct script.
+  if (/[\u0400-\u04FF]/u.test(value)) {
+    return "ru";
   }
-  if (/[\u0400-\u04FF]/.test(v)) return "ru";
-  if (/[\u00C7\u011E\u0130\u00D6\u015E\u00DC\u00E7\u011F\u0131\u00F6\u015F\u00FC]/.test(v)) return "tr";
-  if (/[A-Za-z]/.test(v)) return "en";
+
+  // Persian and Arabic share many characters.
+  if (/[\u0600-\u06FF]/u.test(value)) {
+    // Characters used specifically or predominantly in Persian.
+    if (
+      /[\u067E\u0686\u0698\u06AF\u06A9\u06CC\u06C0\u06D5\u06F0-\u06F9]/u.test(
+        value,
+      )
+    ) {
+      return "fa";
+    }
+
+    const words = value
+      .replace(/[^\u0600-\u06FF]+/gu, " ")
+      .trim()
+      .split(/\s+/u)
+      .filter(Boolean);
+
+    const hasWord = (items: string[]) =>
+      words.some((word) => items.includes(word));
+
+    const hasStrongPersianWords = hasWord([
+      "من",
+      "ما",
+      "تو",
+      "شما",
+      "هستم",
+      "هستیم",
+      "هستی",
+      "دارم",
+      "داریم",
+      "دارید",
+      "ندارم",
+      "میخوام",
+      "میخواهم",
+      "میفروشم",
+      "برای",
+      "چی",
+      "چطور",
+      "خوبم",
+      "ممنون",
+      "فروش",
+      "محصول",
+      "خدمت",
+      "دوره",
+      "قیمت",
+      "ماهانه",
+      "الان",
+    ]);
+
+    if (hasStrongPersianWords) {
+      return "fa";
+    }
+
+    const hasStrongArabicWords = hasWord([
+      "أنا",
+      "انا",
+      "نحن",
+      "أنت",
+      "انت",
+      "هو",
+      "هي",
+      "نعم",
+      "كيف",
+      "ماذا",
+      "هذا",
+      "هذه",
+      "لدي",
+      "عندي",
+      "شكرا",
+      "مرحبا",
+      "أريد",
+      "اريد",
+      "أبيع",
+      "ابيع",
+      "منتج",
+      "خدمة",
+      "دورة",
+      "دورات",
+      "مبيعات",
+      "سعر",
+      "شهريا",
+      "الآن",
+      "الان",
+    ]);
+
+    if (hasStrongArabicWords) {
+      return "ar";
+    }
+
+    // Arabic-specific forms and diacritics.
+    if (
+      /[\u0629\u0649\u0624\u0626\u0671\u064B-\u065F]/u.test(
+        value,
+      )
+    ) {
+      return "ar";
+    }
+
+    // Ambiguous names and short text preserve the selected language.
+    // Examples: مونا، محمد، سلام
+    if (currentLang === "fa" || currentLang === "ar") {
+      return currentLang;
+    }
+
+    return "fa";
+  }
+
+  // Turkish-specific Latin characters.
+  if (
+    /[\u00C7\u011E\u0130\u00D6\u015E\u00DC\u00E7\u011F\u0131\u00F6\u015F\u00FC]/u.test(
+      value,
+    )
+  ) {
+    return "tr";
+  }
+
+  if (/[A-Za-z]/u.test(value)) {
+    const lower = value.toLocaleLowerCase();
+
+    const words = lower
+      .split(/[^a-zçğıöşü]+/u)
+      .filter(Boolean);
+
+    const hasWord = (items: string[]) =>
+      words.some((word) => items.includes(word));
+
+    if (
+      hasWord([
+        "merhaba",
+        "ben",
+        "benim",
+        "evet",
+        "hayir",
+        "hayır",
+        "nasil",
+        "nasıl",
+        "urun",
+        "ürün",
+        "hizmet",
+        "satis",
+        "satış",
+        "fiyat",
+        "aylik",
+        "aylık",
+        "istiyorum",
+        "kurs",
+      ])
+    ) {
+      return "tr";
+    }
+
+    if (
+      hasWord([
+        "hello",
+        "hi",
+        "hey",
+        "yes",
+        "no",
+        "thanks",
+        "thank",
+        "what",
+        "how",
+        "product",
+        "service",
+        "sales",
+        "price",
+        "month",
+        "course",
+        "sell",
+        "selling",
+        "need",
+        "want",
+      ])
+    ) {
+      return "en";
+    }
+
+    if (currentLang === "tr" || currentLang === "en") {
+      return currentLang;
+    }
+
+    return "en";
+  }
+
+  // Numbers, punctuation and emoji do not change language.
   return null;
 }
 
@@ -284,7 +472,10 @@ export function SupportWidget() {
   const answer = (label: string, idx?: number) => {
     if (!lang) return;
 
-    const detected = detectMessageLang(label);
+    const detected =
+      typeof idx === "number" || step === 0
+        ? null
+        : detectMessageLang(label, lang);
     const langNow = detected ?? lang;
 
     if (langNow !== lang) setLang(langNow);
@@ -319,7 +510,7 @@ export function SupportWidget() {
   const askFreeQA = async (text: string) => {
     if (!lang) return;
 
-    const detected = detectMessageLang(text);
+    const detected = detectMessageLang(text, lang);
     const langNow = detected ?? lang;
     const a = ADV[langNow];
 
