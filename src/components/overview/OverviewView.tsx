@@ -4,7 +4,7 @@ import { cx, fmt, money, initials } from "../../lib/format";
 import { toast } from "../../lib/toast";
 import { track } from "../../lib/telemetry";
 import { Icon, Sparkline, AreaChart, PageHead, CardHead, Kpi } from "../ui";
-import { CONVOS, BENCH } from "../../data";
+import { BENCH } from "../../data";
 import { useDataset } from "../../lib/dataset";
 import { NeedsYou } from "./NeedsYou";
 import { AutomationLoop } from "./AutomationLoop";
@@ -12,8 +12,10 @@ import { ActivityFeed } from "./ActivityFeed";
 import { GoalCard } from "./GoalCard";
 
 export function OverviewView({ t, setView, openComposer, goToChat, autopilot, setAutopilot, autonomy, setAutonomy, onFunnelAction, onShare, onPlaybooks, goal, setGoal, onCelebrate, isPreview, onAddChannel, onExplain }: any) {
-  const { KPIS, REVENUE, FUNNEL, SEGMENTS } = useDataset();
+  const { KPIS, REVENUE, FUNNEL, SEGMENTS, CONVOS, live } = useDataset();
   const [ovTab, setOvTab] = useState("perf");
+  const aiClosed = live ? 0 : 32800;
+  const aiShare = live ? 0 : 68;
   const taskState = ["running", "done", "queued"];
   const aTitle = autopilot ? t.airun.title : (autonomy === "draft" ? t.airun.titleDraft : autonomy === "approve" ? t.airun.titleApprove : t.airun.titlePaused);
   const aSub = autopilot ? t.airun.sub : (autonomy === "draft" ? t.airun.subDraft : autonomy === "approve" ? t.airun.subApprove : t.airun.subPaused);
@@ -31,9 +33,9 @@ export function OverviewView({ t, setView, openComposer, goToChat, autopilot, se
         </div>
         <div className="rh-ai">
           <div className="rh-ai-cap"><Icon name="bot" size={14} /> {t.ov.aiClosed}</div>
-          <div className="rh-ai-amt">{money(32800)}</div>
-          <div className="rh-ai-track"><span style={{ width: "68%" }} /></div>
-          <div className="rh-ai-sub">68% {t.ov.ofRevenue} · {t.ov.aiHint}</div>
+          <div className="rh-ai-amt">{money(aiClosed)}</div>
+          <div className="rh-ai-track"><span style={{ width: aiShare + "%" }} /></div>
+          <div className="rh-ai-sub">{aiShare}% {t.ov.ofRevenue} · {t.ov.aiHint}</div>
           <button type="button" className="db-rh-how" onClick={() => onExplain && onExplain()}><Icon name="eye" size={13} /> {t.xai.viewDetail}</button>
           <button className="db-rh-share" onClick={() => onShare && onShare()}><Icon name="share" size={13} /> {t.share.shareWin}</button>
         </div>
@@ -49,15 +51,15 @@ export function OverviewView({ t, setView, openComposer, goToChat, autopilot, se
       <div className="db-kpis" style={{ marginBottom: 24 }}>{KPIS.map((k, i) => <Kpi key={i} label={t.ov.kpis[i]} k={k} />)}</div>
       <div className="db-grid g-hero" style={{ marginBottom: 24 }}>
         <div className="db-card">
-          <CardHead title={t.ov.rev} right={<><span className="db-muted" style={{ fontSize: 12.5 }}>{t.ov.last30}</span>&nbsp;&nbsp;<span className="db-chip"><Icon name="arrowUp" size={12} /> +23%</span></>} />
+          <CardHead title={t.ov.rev} right={<><span className="db-muted" style={{ fontSize: 12.5 }}>{t.ov.last30}</span>&nbsp;&nbsp;<span className="db-chip"><Icon name="arrowUp" size={12} /> +{live ? 0 : 23}%</span></>} />
           <div className="db-pad"><AreaChart data={REVENUE} /></div>
         </div>
         <div className="db-card">
           <CardHead title={t.ov.convFunnel} />
           <div className="db-pad"><div className="db-funnel">{FUNNEL.map((f, i) => (
             <div className="db-fstage" key={i}>
-              <div className="db-fstage-h"><span className="lab">{t.ov.funnel[i]}</span><span className="pct">{f.p}%</span><span className="val">{fmt(f.v)}</span></div>
-              <div className="db-ftrack"><div className="fill" style={{ width: Math.max(f.p, 6) + "%" }} /></div>
+              <div className="db-fstage-h"><span className="lab">{t.ov.funnel[i]}</span><span className="pct">{f.v > 0 ? f.p : 0}%</span><span className="val">{fmt(f.v)}</span></div>
+              <div className="db-ftrack"><div className="fill" style={{ width: f.v > 0 ? Math.max(f.p, 6) + "%" : "0%" }} /></div>
               <button className="db-faction" onClick={() => onFunnelAction ? onFunnelAction(i) : setView("campaigns")}><Icon name="spark" size={13} /> {t.funnelAct[i]}</button>
             </div>
           ))}</div><div className="db-fnote"><Icon name="bot" size={13} /> {t.funnelAuto}</div></div>

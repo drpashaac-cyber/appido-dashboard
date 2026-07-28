@@ -3,13 +3,15 @@ import React, { useState } from "react";
 import { cx, fmt, money } from "../../lib/format";
 import { Icon, CardHead } from "../ui";
 import { CUR_REV, CUR_SALES } from "../../data";
+import { useDataset } from "../../lib/dataset";
 
 export function GoalCard({ t, goal: goalProp, setGoal, onCelebrate }: any) {
   const g = t.goal;
+  const { live } = useDataset();
   const goal = goalProp || { type: "revenue", target: 50000 };
   const sg = setGoal || (() => {});
   const oc = onCelebrate || (() => {});
-  const cur = goal.type === "sales" ? CUR_SALES : CUR_REV;
+  const cur = live ? 0 : (goal.type === "sales" ? CUR_SALES : CUR_REV);
   const pct = Math.min(100, Math.round((cur / goal.target) * 100));
   const reached = cur >= goal.target;
   const remain = Math.max(0, goal.target - cur);
@@ -20,7 +22,7 @@ export function GoalCard({ t, goal: goalProp, setGoal, onCelebrate }: any) {
   const save = () => {
     const tg = Math.max(1, parseInt((amt || "").replace(/[^0-9]/g, ""), 10) || goal.target);
     sg({ type, target: tg }); setEdit(false);
-    const cv = type === "sales" ? CUR_SALES : CUR_REV;
+    const cv = live ? 0 : (type === "sales" ? CUR_SALES : CUR_REV);
     if (cv >= tg) oc({ kind: type, value: cv });
   };
   return (

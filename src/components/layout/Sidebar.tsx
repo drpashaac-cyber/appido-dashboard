@@ -6,9 +6,16 @@ import { Icon } from "../ui";
 import { NAV, SIDE_GROUPS, SIDE_DESKONLY, SIDE_ID2G } from "../../data";
 import { LANGS } from "../../i18n";
 import { viewLocked } from "../../lib/entitlements";
+import { useDataset } from "../../lib/dataset";
 
 export function Sidebar({ view, setView, open, lang, setLang, langOpen, setLangOpen, account, channel, onAccount, onPlan, onLogout, tier, onLocked, t }: any) {
   const cur = LANGS.find((l) => l.c === lang);
+  const { CONVOS, live } = useDataset();
+  const inboxBadge = CONVOS.reduce(
+    (sum: number, conversation: any) =>
+      sum + Number(conversation.unread || 0),
+    0
+  );
   const [acctOpen, setAcctOpen] = useState(false);
   const [openG, setOpenG] = useState<Record<string, boolean>>(() => { const saved = store.get<Record<string, boolean> | null>("nav", null); const k = SIDE_ID2G[view]; if (!saved) return { [k || "customers"]: true }; return k ? { ...saved, [k]: true } : saved; });
   useEffect(() => { const k = SIDE_ID2G[view]; if (k) setOpenG((o) => (o[k] ? o : { ...o, [k]: true })); }, [view]);
@@ -17,9 +24,12 @@ export function Sidebar({ view, setView, open, lang, setLang, langOpen, setLangO
   useEffect(() => { if (!acctOpen) return; const h = (e: any) => { if (footRef.current && !footRef.current.contains(e.target)) setAcctOpen(false); }; document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, [acctOpen]);
   const item = (n: any, i: number, deskOnly?: boolean) => {
     const locked = viewLocked(n.id, tier);
+    const badge = live
+      ? (n.id === "inbox" ? inboxBadge : 0)
+      : n.badge;
     return (
       <button key={n.id} aria-current={view === n.id ? "page" : undefined} aria-disabled={locked || undefined} className={cx("db-navitem", deskOnly && "db-desk-only", view === n.id && "on", locked && "locked")} onClick={locked ? () => onLocked && onLocked(n.id) : () => setView(n.id)}>
-        <Icon name={n.icon} size={19} /><span>{t.nav[i]}</span>{locked ? <span className="db-nav-lock" aria-hidden="true"><Icon name="lock" size={13} /></span> : (n.badge ? <span className="bdg">{n.badge}</span> : null)}
+        <Icon name={n.icon} size={19} /><span>{t.nav[i]}</span>{locked ? <span className="db-nav-lock" aria-hidden="true"><Icon name="lock" size={13} /></span> : (badge ? <span className="bdg">{badge}</span> : null)}
       </button>
     );
   };

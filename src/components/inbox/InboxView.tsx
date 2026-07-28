@@ -80,6 +80,50 @@ export function InboxView({ t, target, autopilot }: any) {
     }
     toast(t.toast.sent); setDraft(""); setReplyTo(null);
   };
+
+  if (!c) {
+    return (
+      <div className="db-inbox">
+        <div className="db-convlist" style={{ width: "100%", maxWidth: "none" }}>
+          <div className="db-segtabs">
+            {tabIds.map((id, i) => (
+              <button
+                key={id}
+                className={cx("db-segtab", seg === id && "on")}
+                onClick={() => {
+                  setSeg(id);
+                  setActive(0);
+                }}
+              >
+                {t.inbox.tabs[i]}
+              </button>
+            ))}
+          </div>
+
+          <div
+            className="db-convs"
+            style={{
+              minHeight: 360,
+              display: "grid",
+              placeItems: "center",
+              padding: 32,
+              textAlign: "center",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
+                No conversations yet
+              </div>
+              <div style={{ color: "var(--text-2)", maxWidth: 420 }}>
+                New customer messages will appear here.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cx("db-inbox", openChat && "show-chat")}>
       <div className="db-convlist">
