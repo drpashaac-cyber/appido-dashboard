@@ -43,7 +43,29 @@ const SEED: Pick<Dataset, "KPIS" | "REVENUE" | "FUNNEL" | "CONVOS" | "TXNS" | "P
   CAMPAIGNS: SEED_CAMPAIGNS as any[],
 };
 
-const Ctx = createContext<Dataset>({ ...SEED, USAGE: null, live: false, loading: false });
+const EMPTY: Pick<Dataset, "KPIS" | "REVENUE" | "FUNNEL" | "CONVOS" | "TXNS" | "PRODUCTS" | "SEGMENTS" | "CAMPAIGNS"> = {
+  KPIS: [
+    { k: "Revenue (90d)", v: "$0", delta: 0, spark: [0, 0], tone: "mint" },
+    { k: "Qualified leads", v: "0", delta: 0, spark: [0, 0], tone: "" },
+    { k: "Conversion", v: "0%", delta: 0, spark: [0, 0], tone: "" },
+    { k: "Active subscribers", v: "0", delta: 0, spark: [0, 0], tone: "" },
+    { k: "Churn", v: "—", delta: 0, spark: [0, 0], tone: "down-good" },
+  ],
+  REVENUE: [0, 0],
+  FUNNEL: [
+    { l: "Reached", v: 0, p: 0 },
+    { l: "Engaged by AI", v: 0, p: 0 },
+    { l: "Qualified", v: 0, p: 0 },
+    { l: "Paid", v: 0, p: 0 },
+  ],
+  CONVOS: [],
+  TXNS: [],
+  PRODUCTS: [],
+  SEGMENTS: [],
+  CAMPAIGNS: [],
+};
+
+const Ctx = createContext<Dataset>({ ...EMPTY, USAGE: null, live: false, loading: false });
 export const useDataset = (): Dataset => useContext(Ctx);
 
 const fmtUsd = (v: number): string => "$" + Math.round(v).toLocaleString("en-US");
@@ -127,7 +149,11 @@ export function channelFromApi(c: ApiChannel, sub: Subscription | null) {
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<Dataset>({ ...SEED, USAGE: null, live: false, loading: apiEnabled() });
+  const [state, setState] = useState<Dataset>(() =>
+    apiEnabled()
+      ? { ...EMPTY, USAGE: null, live: true, loading: true }
+      : { ...SEED, USAGE: null, live: false, loading: false }
+  );
 
   useEffect(() => {
     if (!apiEnabled()) return;
@@ -171,7 +197,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           loading: false,
         });
       } catch {
-        if (alive) setState({ ...SEED, USAGE: null, live: false, loading: false });
+        if (alive) setState({ ...EMPTY, USAGE: null, live: true, loading: false });
       }
     })();
     return () => {
